@@ -14,7 +14,7 @@ black = pygame.Color(0, 0, 0)
 white = pygame.Color(255, 255, 255)
 red = pygame.Color(255, 0, 0)
 green = pygame.Color(0, 255, 0)
-bkue = pygame.Color(0, 0, 255)
+blue = pygame.Color(0, 0, 255)
 
 #Iniciar pygame
 pygame.init()
@@ -42,6 +42,13 @@ fruit_position = [ random.randrange(1, (window_x//10)) * 10,
                    random.randrange(1, (window_y//10)) * 10]
 fruit_spawn = True
 
+#Posicion del bloque
+obstaculos = [
+     [200, 300],
+     [400, 200],
+     [500, 100]
+]
+
 #Direccion de la snake
 #Derecha
 direction = 'RIGHT'
@@ -49,6 +56,10 @@ change_to = direction
 
 #Puntuacion inicial
 score = 0
+
+#Niveles 
+level = 1
+points_per_level = [50, 70, 100, 130, 150]
 
 #Mostrar la puntuacion
 def show_score(choice, color, font, size):
@@ -136,19 +147,41 @@ while True:
      if snake_position[0] == fruit_position[0] and snake_position[1] == fruit_position[1]:
           score += 10
           fruit_spawn = False
+
+          if snake_speed < 25:
+               snake_speed = min(snake_speed + 1, 25)
      else:
           snake_body.pop()
 
      if not fruit_spawn:
           fruit_position = [random.randrange(1, (window_x//10)) * 10,
                             random.randrange(1, (window_y//10)) * 10]
-
+          while fruit_position in snake_body:
+               fruit_position = [random.randrange(1, (window_x//10)) * 10,
+                                 random.randrange(1, (window_y//10)) *10]
+          
      fruit_spawn = True
+
+     if score >= points_per_level[level - 1] and level < 5:
+          level += 1
+          score = 0
+          
+
+     if level == 5 and score == points_per_level:
+          print("You Win")
+          game_over()
+
+
+     block_position = [300, 200]
      game_window.fill(black)
 
      for pos in snake_body:
           pygame.draw.rect(game_window, green, pygame.Rect(pos[0], pos[1], 10, 10))
-          pygame.draw.rect(game_window, white, pygame.Rect(fruit_position[0], fruit_position[1], 10, 10))
+
+     for pos in obstaculos:
+          pygame.draw.rect(game_window, white, pygame.Rect(pos[0], pos[1], 10, 10))
+    
+     pygame.draw.rect(game_window, red, pygame.Rect(fruit_position[0], fruit_position[1], 10, 10))
 
     #Condiciones para perder
      if snake_position[0] < 0 or snake_position[0] > window_x-10:
@@ -159,6 +192,10 @@ while True:
     #Cuando toca el cuerpo de la snake
      for block in snake_body[1:]:
           if snake_position[0] == block[0] and snake_position[1] == block[1]:
+               game_over()
+
+     for pos in obstaculos:
+          if snake_position[0] == pos[0] and pos[1] == snake_position[1]:
                game_over()
 
     #Mostrando el score
